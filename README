@@ -1,0 +1,33 @@
+Image/Embroidery version 0.1
+=============================
+
+This module can be used to read, write and (with GD)
+display embroidery data files. It currently only supports
+Tajima DST files, but if there is any interest it could
+be expanded to deal with other formats. In its current form
+it isn't ideal for creating or modifying patterns, but
+I'm reluctant to put much effort into it until someone
+tells me they are using it.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+  Bit::Vector
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2003 Kirk Baucom <kbaucom@schizoid.com>
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself. 
+
