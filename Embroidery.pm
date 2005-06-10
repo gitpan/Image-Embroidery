@@ -24,7 +24,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw($NORMAL $JUMP $COLOR_CHANGE) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-$VERSION = '0.1';
+$VERSION = '0.2';
 
 $NORMAL = 0;
 $JUMP = 1;
@@ -83,24 +83,32 @@ sub read_tajima_file {
 
   # i don't think the order of these header elements
   # can change, but i'll be flexible.
-  while($fh->read($field, 3)) {
-    if($field eq 'LA:') {
+  while($fh->read($field, 2)) {
+    # read the next character, which should be a colon
+    # that separates the field name from the value. some
+    # file generators forget the colon sometimes, so if
+    # we don't get a colon back, we assume it's part of the data
+    $fh->read(my $separator, 1);
+    unless($separator eq ':') {
+      $fh->seek(1,-1);
+    }
+    if($field eq 'LA') {
       $fh->read(my $label, 16);
       ($self->{'data'}{'LA'} = $label) =~ s/\s*$//;
     }
-    elsif($field eq 'ST:') {
+    elsif($field eq 'ST') {
       $fh->read($self->{'data'}{'ST'}, 7);
       $self->{'data'}{'ST'} = int($self->{'data'}{'ST'});
     }
-    elsif($field eq 'CO:') {
+    elsif($field eq 'CO') {
       $fh->read($self->{'data'}{'CO'}, 3);
       $self->{'data'}{'CO'} = int($self->{'data'}{'CO'});
     }
-    elsif($field =~ /^([-+][XY]):$/) {
+    elsif($field =~ /^([-+][XY])$/) {
       $fh->read(my $val, 5);
       $self->{'data'}{"$1"} = int($val);
     }
-    elsif($field =~ /^([AM][XY]):$/) {
+    elsif($field =~ /^([AM][XY])$/) {
       my $field_name = $1;
       $fh->read(my $val, 6);
       $val =~ s/ //g;
@@ -109,10 +117,10 @@ sub read_tajima_file {
       }
       else { $self->{'data'}{"$field_name"} = 0; }
     }
-    elsif($field eq 'PD:') {
+    elsif($field eq 'PD') {
       $fh->read($self->{'data'}{'PD'}, 9);
     }
-    elsif(unpack('H6', $field) eq '202020') { last; }
+    elsif(unpack('H6', $field) eq '2020') { last; }
     else { carp("Invalid header field: $field"); return 0; }
 
     # eat the CR that follows each field (except the last one, in which
@@ -123,13 +131,30 @@ sub read_tajima_file {
   $self->{'data'}{'x_size'} = $self->{'data'}{'+X'} + $self->{'data'}{'-X'};
   $self->{'data'}{'y_size'} = $self->{'data'}{'+Y'} + $self->{'data'}{'-Y'};
 
-  # read to the end of the 512 byte header (only 125 bytes are used)
-  $fh->read(my $junk, 382);
+  # skip to the end of the header
+  $fh->seek(512, 0);
+
+  # the file spec for Tajima DST indicates that bits 0 and 1 of a
+  # stitch should always be '1', but since they don't mean anything,
+  # we just require them to be consistent throughout the file.
+  # we store the values in the first stitch that we find, then 
+  # compare subsequent stitches to the first value we saw. 
+  my $stitch_bit_0;
+  my $stitch_bit_1;
 
   while($fh->read($stitch, 3)) {
     my $v = Bit::Vector->new(24);
     $v->from_Hex(unpack('H6', $stitch));
-    unless($v->bit_test(1) and $v->bit_test(0)) { carp("Corrupt data file: ", unpack('H6', $stitch)); return 0; }
+
+    if(defined($stitch_bit_0)) {
+      unless($v->bit_test(1) == $stitch_bit_1 and
+             $v->bit_test(0) == $stitch_bit_0) {
+        carp("Possibly corrupt data file: ", unpack('H6', $stitch));
+      }
+    } else {
+      $stitch_bit_0 = $v->bit_test(0);
+      $stitch_bit_1 = $v->bit_test(1);
+    }
 
     # bit 6 is off for jumps and normal stitches
     if(!$v->bit_test(6)) {
@@ -150,9 +175,11 @@ sub read_tajima_file {
       if($v->to_Hex() eq '0000C3') {
         push(@{$self->{'data'}{'pattern'}}, [ $COLOR_CHANGE ]);
       }
-      # this is the 'stop' code. we just ignore it, since it's
-      # obvious when there's no more data.
-      elsif($v->to_Hex() ne '0000F3') {
+      # this is the 'stop' code. sometimes there is trailing data, so
+      # stop reading now.
+      elsif($v->to_Hex() eq '0000F3') {
+        last;
+      } else {
         carp("Invalid operation code");
         return 0;
       }
@@ -413,6 +440,8 @@ file using Image::Embroidery.
     close(F);
 
 =head1 METHODS
+
+=over 4
 
 =item I<draw_logo( $gd_image_object, @colors )>
 
