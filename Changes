@@ -1,5 +1,8 @@
 Revision history for Perl extension Image::Embroidery.
 
+Version 1.0 (2005/11/02)
+	- Added pod tests and cleaned up distribution
+
 Version 0.2 (2005/06/10)
 	- Made the module more forgiving when dealing
 	  with files that have errors

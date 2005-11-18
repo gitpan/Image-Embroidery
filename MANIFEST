@@ -1,6 +1,8 @@
 Changes
-Embroidery.pm
+lib/Image/Embroidery.pm
 Makefile.PL
 MANIFEST
 README
 t/use.t
+t/pod.t
+t/pod-coverage.t
