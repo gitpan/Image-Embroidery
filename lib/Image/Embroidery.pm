@@ -106,7 +106,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw($NORMAL $JUMP $COLOR_CHANGE) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-$VERSION = '1.0';
+$VERSION = '1.1';
 
 $NORMAL = 0;
 $JUMP = 1;
