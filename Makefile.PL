@@ -5,7 +5,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'		=> 'Image::Embroidery',
     'VERSION_FROM'	=> 'lib/Image/Embroidery.pm', # finds $VERSION
-    'PREREQ_PM'		=> {Bit::Vector}, # e.g., Module::Name => 1.1
+    'PREREQ_PM'		=> {Bit::Vector => '6.3'}, # e.g., Module::Name => 1.1
+    'LICENSE'           => 'perl',
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'lib/Image/Embroidery.pm', # retrieve abstract from module
        AUTHOR     => 'Kirk Baucom <kbaucom@schizoid.com>') : ()),

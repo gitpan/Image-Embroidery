@@ -6,4 +6,6 @@ README
 t/use.t
 t/pod.t
 t/pod-coverage.t
+examples/logo.exp
+examples/emb_image.pl
 META.yml

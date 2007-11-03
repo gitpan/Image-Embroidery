@@ -1,13 +1,9 @@
-Image/Embroidery version 1.0
+Image/Embroidery version 1.2
 =============================
 
 This module can be used to read, write and (with GD)
-display embroidery data files. It currently only supports
-Tajima DST files, but if there is any interest it could
-be expanded to deal with other formats. In its current form
-it isn't ideal for creating or modifying patterns, but
-I'm reluctant to put much effort into it until someone
-tells me they are using it.
+display embroidery data files. It currently supports
+Tajima DST and Melco EXP files.
 
 INSTALLATION
 
